@@ -1,5 +1,6 @@
 package domain;
 
 public class SearchCommitResponse implements Response{
-	SearchCommit[] items;
+	public int total_count;
+	public SearchCommit[] items;
 }
