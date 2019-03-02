@@ -62,11 +62,8 @@ public class VersionControlGatewayTest {
 	
 	@Test
 	public void canBuildSoleCommitRequestBody() throws URISyntaxException {
-		String owner = "owner";
-		String repo = "repo";
-		String sha = "sha123";
 		String uri = "https://api.github.com/repos/owner/repo/commits/sha123";
-		HttpGet request = vcg.buildCommitRequestBody(owner, repo, sha );
+		HttpGet request = vcg.buildCommitRequestBody(uri);
 		assertNotNull(request);
 		assertEquals(request.getURI().toString(), uri);
 	}

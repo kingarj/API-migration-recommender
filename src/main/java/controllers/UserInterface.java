@@ -19,7 +19,7 @@ import org.eclipse.swt.widgets.Text;
 
 public class UserInterface {
 	
-	public Controller controller;
+	public static Controller controller;
 	public Display display;
 	public Shell shell;
 
@@ -125,12 +125,13 @@ public class UserInterface {
     }
 
     @SuppressWarnings("unused")
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ClientProtocolException, URISyntaxException, IOException {
     	
     	Display display = new Display();
         UserInterface ex = new UserInterface(display);
         ex.openShell();
         ex.teardown();
+        controller.generateRecommendations("gson", "jackson");
         
         }
 }

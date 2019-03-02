@@ -2,9 +2,7 @@ package controllers;
 
 import static org.junit.Assert.assertNotNull;
 
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Text;
 import org.junit.Test;
 
 public class UserInterfaceTest {
