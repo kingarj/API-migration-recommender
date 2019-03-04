@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.Consts;
@@ -17,6 +18,7 @@ import org.junit.Test;
 
 import domain.ChangeFile;
 import domain.Commit;
+import domain.Mapping;
 
 public class CommitServiceTest {
 	
@@ -41,29 +43,9 @@ public class CommitServiceTest {
 		Commit commit = commitService.createNewCommit(response);
 		assertNotNull(commit.files);
 		assertEquals(commit.files.length, 8);
+		assertEquals(commit.files[0].mappings.size(), 8);
 		assertEquals(message, commit.message);
 		assertEquals(url, commit.url);
-	}
-	
-	@Test
-	public void canParsePatchIntoMappingsDeductionsFirst() throws IOException {
-		ChangeFile file = new ChangeFile();
-		String patch = UtilityMethods.readFile("src/test/resources/examplepatch.txt");
-		file.patch = patch;
-		ChangeFile newFile = commitService.parsePatchIntoMappings(file);
-		assertNotNull(newFile);
-		assertEquals(newFile.mappings.size(), 8);
-	}
-	
-	@Test
-	public void canParsePatchIntoMappingsMixedFile() throws IOException {
-		ChangeFile file = new ChangeFile();
-		String patch = UtilityMethods.readFile("src/test/resources/examplepatch2.txt");
-		file.patch = patch;
-		ChangeFile newFile = commitService.parsePatchIntoMappings(file);
-		assertNotNull(newFile);
-		assertEquals(newFile.mappings.size(), 10);
-		
 	}
 
 }

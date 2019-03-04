@@ -11,4 +11,14 @@ public class Mapping {
 		this.targets = new HashMap<String, Integer>();
 		this.targets.put(target, 1);
 	}
+
+	public void map(String target) {
+		if (this.targets.containsKey(target)) {
+			targets.put(target, targets.get(target) + 1);
+		}
+		else {
+			targets.put(target, 1);
+		}
+		
+	}
 }
