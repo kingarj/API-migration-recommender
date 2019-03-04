@@ -1,11 +1,14 @@
 package domain;
 
+import java.util.List;
+
 public class ChangeFile {
-	String sha;
-	String filename;
-	String status;
-	Integer additions;
-	Integer deletion;
-	Integer changes;
-	String patch;
+	public String sha;
+	public String filename;
+	public String status;
+	public Integer additions;
+	public Integer deletion;
+	public Integer changes;
+	public String patch;
+	public List<Mapping> mappings; 
 }
