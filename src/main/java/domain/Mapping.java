@@ -21,4 +21,16 @@ public class Mapping {
 		}
 		
 	}
+
+	public String getMostFrequentMapping() {
+		String mostFrequent = "";
+		Integer highestSeen = 0;
+		for (String s : targets.keySet()) {
+			if (targets.get(s) > highestSeen) {
+				mostFrequent = s;
+				highestSeen = targets.get(s);
+			}
+		}
+		return mostFrequent;
+	}
 }

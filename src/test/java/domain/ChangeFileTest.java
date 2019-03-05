@@ -7,7 +7,7 @@ import java.io.IOException;
 
 import org.junit.Test;
 
-import services.UtilityMethods;
+import util.UtilityMethods;
 
 public class ChangeFileTest {
 	

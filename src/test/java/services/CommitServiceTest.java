@@ -4,8 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.http.Consts;
 import org.apache.http.HttpResponse;
@@ -16,9 +14,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.junit.Test;
 
-import domain.ChangeFile;
 import domain.Commit;
-import domain.Mapping;
+import util.UtilityMethods;
 
 public class CommitServiceTest {
 	

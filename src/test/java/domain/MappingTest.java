@@ -14,5 +14,21 @@ public class MappingTest {
 		assertEquals("source", mapping.source);
 		assertEquals(mapping.targets.size(),1);
 	}
+	
+	@Test
+	public void canMapTargetMultipleTimes() {
+		Mapping mapping = new Mapping("1", "2");
+		mapping.map("2");
+		assert(mapping.targets.get("2") == 2);
+	}
+	
+	@Test
+	public void canGetMostFrequentMapping() {
+		Mapping mapping = new Mapping("1", "2");
+		mapping.map("3");
+		mapping.map("2");
+		String target = mapping.getMostFrequentMapping();
+		assert(target == "2");
+	}
 
 }

@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -17,7 +15,6 @@ import com.google.gson.GsonBuilder;
 import domain.ChangeFile;
 import domain.Commit;
 import domain.CommitResponse;
-import domain.Mapping;
 
 public class CommitService {
 

@@ -1,6 +1,5 @@
 package controllers;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
@@ -23,7 +22,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import domain.Mapping;
-import services.UtilityMethods;
+import util.UtilityMethods;
 
 public class ControllerTest {
 	
