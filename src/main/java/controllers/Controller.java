@@ -54,7 +54,7 @@ public class Controller {
 			// add the mappings to the recommendations array
 			for (ChangeFile file : commit.files) {
 				
-				if (file.mappings != null) { 
+				if (file.mappings != null) {
 					recommendations.addAll(file.mappings);
 				}
 			}

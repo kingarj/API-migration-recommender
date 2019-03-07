@@ -62,7 +62,7 @@ public class ControllerTest {
 		String commitResponseStr = UtilityMethods.readFile("src/test/resources/examplecommitresponse.txt");
 		StringEntity commitEntity = new StringEntity(commitResponseStr,
 		        ContentType.create("application/json", Consts.UTF_8));
-		commitResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, 
+		commitResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1,
 			    HttpStatus.SC_OK, "OK");
 		commitResponse.setEntity(commitEntity);
 		
@@ -78,10 +78,9 @@ public class ControllerTest {
 	
 	@Test
 	public void canGenerateRecommendations() throws URISyntaxException, ClientProtocolException, IOException {
-		System.out.println("running");
 		ArrayList<Mapping> recommendations = controller.generateRecommendations(source, target);
 		assertNotNull(recommendations);
-		assert(recommendations.size() > 0);
+		assert(recommendations.size() > 0); 	
 	}
 
 }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -15,6 +16,7 @@ import com.google.gson.GsonBuilder;
 import domain.ChangeFile;
 import domain.Commit;
 import domain.CommitResponse;
+import domain.Mapping;
 
 public class CommitService {
 
@@ -37,6 +39,27 @@ public class CommitService {
 		}
 		
 		return commit;
+	}
+
+	public ArrayList<Mapping> mergeFileMappingCandidates(Commit commit) {
+		ArrayList<Mapping> mergedList = new ArrayList<Mapping>();
+		for (ChangeFile f : commit.files) {
+			if (mergedList.size() == 0) {
+				mergedList.addAll(f.mappings);
+			}
+			else {
+				for (Mapping mL : mergedList) {
+					if (f.mappings != null) {
+						for (Mapping ma : f.mappings) {
+							if (mL.source.equals(ma.source)) {
+								mL.targets.forEach((k, v) -> ma.targets.merge(k, v, Integer::sum));
+							}
+						}						
+					}
+				}
+			}
+		}
+		return mergedList;
 	}
 
 }

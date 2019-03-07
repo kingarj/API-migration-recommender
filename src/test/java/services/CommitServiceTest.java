@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.apache.http.Consts;
 import org.apache.http.HttpResponse;
@@ -15,6 +16,7 @@ import org.apache.http.message.BasicHttpResponse;
 import org.junit.Test;
 
 import domain.Commit;
+import domain.Mapping;
 import util.UtilityMethods;
 
 public class CommitServiceTest {
@@ -43,6 +45,21 @@ public class CommitServiceTest {
 		assertEquals(commit.files[0].mappings.size(), 8);
 		assertEquals(message, commit.message);
 		assertEquals(url, commit.url);
+	}
+	
+	@Test
+	public void canMergeFileMappingCandidates() throws IOException {
+		String responseStr = UtilityMethods.readFile("src/test/resources/examplecommitresponsetwocontrollerfiles.txt");
+		StringEntity entity = new StringEntity(responseStr,
+		        ContentType.create("application/json", Consts.UTF_8));
+		HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 
+			    HttpStatus.SC_OK, "OK");
+		response.setEntity(entity);
+		Commit commit = commitService.createNewCommit(response);
+		
+		ArrayList<Mapping> mappings = commitService.mergeFileMappingCandidates(commit);
+		assertNotNull(mappings);
+		
 	}
 
 }
