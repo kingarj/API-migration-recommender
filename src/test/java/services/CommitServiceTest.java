@@ -57,8 +57,12 @@ public class CommitServiceTest {
 		response.setEntity(entity);
 		Commit commit = commitService.createNewCommit(response);
 		
-		ArrayList<Mapping> mappings = commitService.mergeFileMappingCandidates(commit);
+		ArrayList<Mapping> mappings = commitService.mergeFileMappingCandidates(commit);		
+		String line = "	public String[] generateRecommendations(String source, String target) throws URISyntaxException, ClientProtocolException, IOException {";
+		Integer i = 2;
 		assertNotNull(mappings);
+		assertEquals(mappings.size(), 8);
+		assertEquals(mappings.get(0).targets.get(line), i);
 		
 	}
 

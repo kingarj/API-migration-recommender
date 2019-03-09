@@ -40,24 +40,35 @@ public class CommitService {
 		
 		return commit;
 	}
+	
+	public ArrayList<Mapping> mergeTwoMappingLists(ArrayList<Mapping> one, ArrayList<Mapping> two) {
+		/**
+		 * Given two ArrayLists of Mapping objects, merge the second into the first and return the latter
+		 */
+		// if one and two are both populated, then merge two into one
+		if (one != null && one.size() > 0 && two != null && two.size() > 0) {
+			for (Mapping m1 : one) {
+				for (Mapping m2 : two) {
+					if (m1.source.equals(m2.source)) {
+						m2.targets.forEach((k, v) -> m1.targets.merge(k, v, Integer::sum));
+					}
+				}
+			}
+		}
+		
+		// if one is empty then add two's list
+		else if (one != null && one.size() == 0 && two != null && two.size() > 0) {
+			one.addAll(two);
+		}
+		
+		return one;
+					
+	}
 
 	public ArrayList<Mapping> mergeFileMappingCandidates(Commit commit) {
 		ArrayList<Mapping> mergedList = new ArrayList<Mapping>();
 		for (ChangeFile f : commit.files) {
-			if (mergedList.size() == 0) {
-				mergedList.addAll(f.mappings);
-			}
-			else {
-				for (Mapping mL : mergedList) {
-					if (f.mappings != null) {
-						for (Mapping ma : f.mappings) {
-							if (mL.source.equals(ma.source)) {
-								mL.targets.forEach((k, v) -> ma.targets.merge(k, v, Integer::sum));
-							}
-						}						
-					}
-				}
-			}
+			mergedList = mergeTwoMappingLists(mergedList, (ArrayList<Mapping>) f.mappings);
 		}
 		return mergedList;
 	}
