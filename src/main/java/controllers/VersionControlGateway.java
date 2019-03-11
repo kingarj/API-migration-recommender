@@ -15,16 +15,24 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 public class VersionControlGateway {
 
-	CloseableHttpClient httpclient;
+	CloseableHttpClient httpclient; 
+	private static Logger logger = LoggerFactory.getLogger(VersionControlGateway.class);
+
 
 	public VersionControlGateway() {
 		this.httpclient = HttpClients.createDefault();
 	}
 
 	public HttpResponse executeHttpRequest(HttpGet request) throws ClientProtocolException, IOException {
+		logger.debug("executing HTTP request with {}", request.getRequestLine().toString());
 		HttpResponse response = httpclient.execute(request);
+		logger.debug("HTTP request sent and response received");
 		handleResponse(response);
 		return response;
 	}

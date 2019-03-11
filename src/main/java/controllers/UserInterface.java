@@ -2,6 +2,7 @@ package controllers;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 
 import org.apache.http.client.ClientProtocolException;
 import org.eclipse.swt.SWT;
@@ -21,14 +22,13 @@ import domain.Mapping;
 
 public class UserInterface {
 	
-	public static Controller controller;
+	public static Controller controller = new Controller();
 	public Display display;
 	public Shell shell;
 
     public UserInterface(Display display) {
     	
     	this.display = display;
-        controller = new Controller();
         shell = new Shell(display, SWT.SHELL_TRIM | SWT.CENTER);
         init();
     }
@@ -129,11 +129,24 @@ public class UserInterface {
     @SuppressWarnings("unused")
     public static void main(String[] args) throws ClientProtocolException, URISyntaxException, IOException {
     	
-    	Display display = new Display();
-        UserInterface ex = new UserInterface(display);
-        ex.openShell();
-        ex.teardown();
-        controller.generateRecommendations("gson", "jackson");
-        
-        }
+//    	Display display = new Display();
+//        UserInterface ex = new UserInterface(display);
+//        ex.openShell();
+//        ex.teardown();
+    	if (args.length == 2) {
+    		try {
+        		ArrayList<Mapping> recommendations = controller.generateRecommendations(args[0], args[1]);
+        		for (Mapping m : recommendations) {
+        			System.out.println("We recommend that you map:\n " + m.source + "\n" + m.getMostFrequentMapping() + "\n");
+        		}
+    		}
+    		catch (NullPointerException e) {
+    			System.out.println(e);
+    			System.out.println("stuck in a catch");
+    		}
+          } 
+    	else {
+             System.err.println("Missing Input: Please enter TWO strings.");
+          }
+    }
 }
