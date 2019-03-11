@@ -37,7 +37,7 @@ public class RecommendationEngineTest {
 		HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 
 			    HttpStatus.SC_OK, "OK");
 		response1.setEntity(entity1);
-		Commit commit1 = commitService.createNewCommit(response1);
+		Commit commit1 = commitService.createNewCommit(response1, "test", "test");
 		
 		// create second commit
 		String responseStr2 = UtilityMethods.readFile("src/test/resources/examplecommitresponse.txt");
@@ -46,7 +46,7 @@ public class RecommendationEngineTest {
 		HttpResponse response2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 
 			    HttpStatus.SC_OK, "OK");
 		response2.setEntity(entity2);
-		Commit commit2 = commitService.createNewCommit(response2);
+		Commit commit2 = commitService.createNewCommit(response2, "test", "test");
 		Commit[] commits = new Commit[] {commit1, commit2};
 		HashMap<String, String> recommendations = recommendationEngine.mergeMappings(commits);
 		assertNotNull(recommendations);

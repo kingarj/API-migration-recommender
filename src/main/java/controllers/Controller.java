@@ -36,6 +36,7 @@ public class Controller {
 		 * It returns an ArrayList of recommended mappings.
 		 */
 		ArrayList<Mapping> recommendations = new ArrayList<Mapping>();
+		String root = "src/main/resources/";
 		
 		// build the request body to get search commits from the name of the source and target APIs
 		logger.debug("Building search commit request");
@@ -59,7 +60,7 @@ public class Controller {
 			logger.debug("Commit request executed with status code {}", commitResponse.getStatusLine());
 			
 			// map to a new Commit object including generating Cartesian mappings from the patch
-			Commit commit = cs.createNewCommit(commitResponse);
+			Commit commit = cs.createNewCommit(commitResponse, root + source, root + target);
 			
 			//release the connection from the request object
 			commitRequest.releaseConnection();

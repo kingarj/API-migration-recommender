@@ -15,6 +15,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.junit.Test;
 
+import domain.ChangeFile;
 import domain.Commit;
 import domain.Mapping;
 import util.UtilityMethods;
@@ -39,12 +40,32 @@ public class CommitServiceTest {
 		response.setEntity(entity);
 		String message = "add service to map results of searching github commits to an object";
 		String url = "https://api.github.com/repos/kingarj/API-migration-recommender/git/commits/6e199009fee42f8665923181a2f39adddcb92d5a";
-		Commit commit = commitService.createNewCommit(response);
+		Commit commit = commitService.createNewCommit(response, "src/test/resources/source.txt", "src/test/resources/target.txt");
 		assertNotNull(commit.files);
 		assertEquals(commit.files.length, 8);
 		assertEquals(commit.files[0].mappings.size(), 8);
 		assertEquals(message, commit.message);
 		assertEquals(url, commit.url);
+	}
+
+	@Test
+	public void canSetMappingsDeductionsFirst() throws IOException {
+		ChangeFile file = new ChangeFile();
+		String patch = UtilityMethods.readFile("src/test/resources/examplepatch.txt");
+		file.patch = patch;
+		commitService.setMappings(file);
+		assertNotNull(file.mappings);
+		assertEquals(file.mappings.size(), 8);
+	}
+	
+	@Test
+	public void canSetMappingsMixedFile() throws IOException {
+		ChangeFile file = new ChangeFile();
+		String patch = UtilityMethods.readFile("src/test/resources/examplepatch2.txt");
+		file.patch = patch;
+		commitService.setMappings(file);
+		assertNotNull(file.mappings);
+		assertEquals(file.mappings.size(), 10);		
 	}
 	
 	@Test
@@ -55,14 +76,55 @@ public class CommitServiceTest {
 		HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 
 			    HttpStatus.SC_OK, "OK");
 		response.setEntity(entity);
-		Commit commit = commitService.createNewCommit(response);
+		Commit commit = commitService.createNewCommit(response, "src/test/resources/source.txt", "src/test/resources/target.txt");
 		
 		ArrayList<Mapping> mappings = commitService.mergeFileMappingCandidates(commit);		
 		String line = "	public String[] generateRecommendations(String source, String target) throws URISyntaxException, ClientProtocolException, IOException {";
 		Integer i = 2;
 		assertNotNull(mappings);
 		assertEquals(mappings.size(), 8);
-		assertEquals(mappings.get(0).targets.get(line), i);
+		assertEquals(mappings.get(0).targets.get(line), i);	
+	}
+	
+	@Test
+	public void canSanitiseMappings() {
+		
+		ArrayList<Mapping> mappings = new ArrayList<Mapping>();
+		// test for import statements
+		Mapping mapping1 = new Mapping("import x.y.z.One", "import a.b.Six");
+		mappings.add(mapping1);
+		// test for annotations
+		Mapping mapping2 = new Mapping("@Two", "@Four(PROP)");
+		mappings.add(mapping2);
+		// test for methods on instances of classes with same number of parameters
+		// TODO: how do we know if a var is an instance of a class e.g. One unrelated_name = new One();
+		Mapping mapping3 = new Mapping("oneInstance.create(var)", "fiveInstance.add(var)");
+		mappings.add(mapping3);
+		// test for methods on instances of classes with a different number of parameters
+		Mapping mapping4 = new Mapping("threeInstance.sum(listVar)", "sixInstance.addTwo(1,2)");
+		mappings.add(mapping4);
+		
+		ChangeFile file = new ChangeFile();
+		file.mappings = mappings;
+		
+		commitService.sanitiseMappings(file, "src/test/resources/source.txt", "src/test/resources/target.txt");
+		
+		String mapping2Target = "@Four(***)";
+		String mapping3Source = "***.create(***)";
+		String mapping3Target = "***.add(***)";
+		String mapping4Source = "***.sum(***)";
+		String mapping4Target = "***.addTwo(***,***)";
+		
+//		assertEquals(file.mappings.get(1).targets.keySet().toArray()[0], mapping2Target);
+//		System.out.println("mapping 2 target is" + file.mappings.get(1).targets.keySet().toArray()[0]);
+		assertEquals(file.mappings.get(2).source, mapping3Source);
+		System.out.println("mapping 3 source is" + file.mappings.get(2).source);
+//		assertEquals(file.mappings.get(2).targets.keySet().toArray()[0], mapping3Target);
+//		System.out.println("mapping 3 target is" + file.mappings.get(2).targets.keySet().toArray()[0]);
+		assertEquals(file.mappings.get(3).source, mapping4Source);
+		System.out.println("mapping 4 source is" + file.mappings.get(3).source);
+//		assertEquals(file.mappings.get(3).targets.keySet().toArray()[0], mapping4Target);
+//		System.out.println("mapping 4 target is" + file.mappings.get(3).targets.keySet().toArray()[0]);
 		
 	}
 
