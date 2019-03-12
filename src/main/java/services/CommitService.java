@@ -115,9 +115,10 @@ public class CommitService {
 		// identify tokens from the source library
 		for (Entry<String, String[]> s : library.entrySet()) {
 			int i = loc.indexOf(s.getKey());
-			if (i > -1) {
+			while (i >= 0) {
 				protectedIndices.add(i);
-				protectedIndices.add(i+s.getKey().length());						
+				protectedIndices.add(i+s.getKey().length());
+				i = loc.indexOf(s.getKey(), i+1);
 			}
 			// loop attributes and methods
 			for (String ams : s.getValue()) {
@@ -125,15 +126,18 @@ public class CommitService {
 					continue;
 				}
 				int j = loc.indexOf(ams);
-				int len = j + ams.length();
-				// ensure that this is the full method or attribute by checking surrounding syntax
-				if (j > -1 && loc.substring(j - 1,j).equals(".") && 
-						(loc.substring(len,len+1).equals("(") || 
-							loc.substring(len, len+ 1).equals(";") ||
-								len == loc.length())) {
-									protectedIndices.add(j);
-									protectedIndices.add(j+ams.length());
-				}			
+				while(j >= 0) {
+					int len = j + ams.length();
+					// ensure that this is the full method or attribute by checking surrounding syntax
+					if (loc.substring(j - 1,j).equals(".") && 
+							(loc.substring(len,len+1).equals("(") || 
+								loc.substring(len, len+ 1).equals(";") ||
+									len == loc.length())) {
+										protectedIndices.add(j);
+										protectedIndices.add(j+ams.length());
+					}
+				    j = loc.indexOf(ams, j+1);
+				}
 			}
 		}
 		
@@ -141,7 +145,7 @@ public class CommitService {
 		Boolean clearProtectedIndices = false;
 		for (String s : syntaxTokens) {
 			int i = loc.indexOf(s);
-			if (i > -1) {
+			while(i >= 0) {
 				// we want to preserve import statements in their entirety
 				if (s.equals("import")) {
 					clearProtectedIndices = true;
@@ -149,7 +153,8 @@ public class CommitService {
 				else {
 					protectedIndices.add(i);
 					protectedIndices.add(i+s.length());
-				}						
+				}
+			    i = loc.indexOf(s, i+1);
 			}
 		}
 		
