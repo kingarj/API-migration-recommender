@@ -5,7 +5,11 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -49,58 +53,162 @@ public class CommitService {
 	}
 	
 	
-	void sanitiseMappings(ChangeFile file, String source, String target) {
+	void sanitiseMappings(ChangeFile file, String sourceFile, String targetFile) {
 		/**
 		 * Given a ChangeFile with mappings, remove the application context and replace with {} characters
 		 */
-		String[] sourceClasses = new String[] {};
-		String[] targetClasses = new String[] {};
+		HashMap<String, String[]> sourceLib = new HashMap<String, String[]>();
+		HashMap<String, String[]> targetLib = new HashMap<String, String[]>();
+		String[] syntaxTokens = new String[] {};
+		
+		// read library structures and language tokens from file
 		try {
-			sourceClasses = UtilityMethods.readFile(source).split(",");
-			targetClasses = UtilityMethods.readFile(target).split(",");			
+			sourceLib = generateLibrary(sourceFile);
+			targetLib = generateLibrary(targetFile);
+			syntaxTokens = UtilityMethods.readFile("src/main/resources/syntax_tokens.txt").split("\r\n");
 		}
 		catch (IOException e) {
-			this.logger.debug("Source or target API listing file not found");
+			this.logger.debug(e.getMessage());
 		}
 		
-		String replaceChar = "***";
+		// ensure the mappings of the file are populated
 		if (file.mappings == null) {
 			setMappings(file);
-		}
-		else {
-			for (Mapping m : file.mappings) {
-				ArrayList<Integer> protectIndices = new ArrayList<Integer>();
-				String newString = "";
-				// sanitise source
-				for (String s : sourceClasses) {
-					int i = m.source.indexOf(s);
-					if (i > -1) {
-						protectIndices.add(i);
-						protectIndices.add(i+s.length());						
-					}
-				}
-				for (int i = 0; i < protectIndices.size(); i ++) {
-					if (i == protectIndices.size() - 1) {
-						if (i < m.source.length()) {
-							newString += replaceChar;							
-						}
-					}
-					else if (i == 0 && protectIndices.get(i) == 0) {
-						newString += m.source.substring(protectIndices.get(i), protectIndices.get(i+1));
-					}
-					else if (i == 0 && protectIndices.get(i) != 0) {
-						newString += replaceChar;
-					}
-					else if (i % 2 == 0) {
-						newString += m.source.substring(protectIndices.get(i), protectIndices.get(i+1));
-					}
-					else {
-						newString += replaceChar;
-					}
-				}
-				m.source = newString;
+			// if they are still null, there is nothing to sanitise so return early
+			if (file.mappings == null) {
+				return;
 			}
 		}
+		
+		// loop mappings to sanitise them
+		else {
+			for (Mapping m : file.mappings) {
+				
+				// generate the indices of characters to preserve in the source LOC
+				ArrayList<Integer> sourceIndices = generateProtectedIndices(sourceLib, m.source, syntaxTokens);
+				m.source = replaceContextualSyntax(sourceIndices, m.source);
+				for (String target : m.targets.keySet()) {
+					
+					// generate the indices of characters to preserve in the target LOCs
+					ArrayList<Integer> targetIndices = generateProtectedIndices(targetLib, target, syntaxTokens);
+					String sanitisedTarget = replaceContextualSyntax(targetIndices, target);
+					
+					Integer frequency = m.targets.get(target);
+
+					// remove the old target value
+					m.targets.remove(target);
+					
+					// put a new entry in targets with the sanitised target string
+					m.targets.put(sanitisedTarget, frequency);
+					
+				}
+			}
+		}
+	}
+
+
+	private ArrayList<Integer> generateProtectedIndices(HashMap<String, String[]> library, String loc, String[] syntaxTokens) {
+		ArrayList<Integer> protectedIndices = new ArrayList<Integer>();
+		
+		// identify tokens from the source library
+		for (Entry<String, String[]> s : library.entrySet()) {
+			int i = loc.indexOf(s.getKey());
+			if (i > -1) {
+				protectedIndices.add(i);
+				protectedIndices.add(i+s.getKey().length());						
+			}
+			// loop attributes and methods
+			for (String ams : s.getValue()) {
+				int j = loc.indexOf(ams);
+				if (j > -1) {
+					protectedIndices.add(j);
+					protectedIndices.add(j+ams.length());						
+				}
+			}
+		}
+		
+		// identify tokens of Java to be ignored
+		Boolean clearProtectedIndices = false;
+		for (String s : syntaxTokens) {
+			int i = loc.indexOf(s);
+			if (i > -1) {
+				// we want to preserve import statements in their entirety
+				if (s.equals("import")) {
+					clearProtectedIndices = true;
+				}
+				else {
+					protectedIndices.add(i);
+					protectedIndices.add(i+s.length());
+				}						
+			}
+		}
+		
+		// clear the protected indices if it is flagged to protect the whole statement
+		if (clearProtectedIndices) {
+			protectedIndices.clear();
+		}
+		
+		return protectedIndices;
+	}
+
+
+	private String replaceContextualSyntax(ArrayList<Integer> protectIndices, String loc) {
+		String newString = "";
+		String replaceChar = "***";
+		Collections.sort(protectIndices);
+		
+		for (int i = 0; i < protectIndices.size(); i ++) {
+			if (i == protectIndices.size() - 1) {
+				if (protectIndices.get(i) < loc.length()) {
+					newString += replaceChar;							
+				}
+			}
+			else if (i == 0 && protectIndices.get(i) == 0) {
+				newString += loc.substring(protectIndices.get(i), protectIndices.get(i+1));
+			}
+			else if (i == 0 && protectIndices.get(i) != 0) {
+				newString += replaceChar;
+				newString += loc.substring(protectIndices.get(i), protectIndices.get(i+1));
+			}
+			else if (i % 2 == 0) {
+				newString += loc.substring(protectIndices.get(i), protectIndices.get(i+1));
+			}
+			else if (protectIndices.get(i) == protectIndices.get(i+1) || protectIndices.get(i) == protectIndices.get(i+1) + 1) {
+				continue;
+			}
+			else {
+				newString += replaceChar;
+			}
+		}
+		return newString.length() > 0 ? newString : loc;
+	}
+
+
+	private HashMap<String, String[]> generateLibrary(String file) throws IOException {
+		HashMap<String, String[]> newLib = new HashMap<String, String[]>();
+
+		// populate newLib HashMap with classes and their methods and attributes
+		String[] classes = UtilityMethods.readFile(file).split("\r\n");
+		for (String c : classes) {
+			String className = null;
+			String attrsMethods = null;
+			if (c.indexOf(":") != -1) {
+				String[] segmentedClass = c.split(":");
+				if (segmentedClass.length != 2) {
+					throw new IOException("library file incorrectly configured");
+				}
+				else {
+					className = segmentedClass[0];
+					attrsMethods = segmentedClass[1];
+				}
+			}
+			else {
+				className = c;
+				attrsMethods = "";
+			}
+			newLib.put(className, attrsMethods.split(","));
+		}
+		return newLib;
 	}
 
 

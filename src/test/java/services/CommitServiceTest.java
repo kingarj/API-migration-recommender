@@ -103,28 +103,45 @@ public class CommitServiceTest {
 		// test for methods on instances of classes with a different number of parameters
 		Mapping mapping4 = new Mapping("threeInstance.sum(listVar)", "sixInstance.addTwo(1,2)");
 		mappings.add(mapping4);
+		// test for multiple methods on the same class
+		Mapping mapping5 = new Mapping("threeInstance.sum(listVar)", "sixInstance.addThree(1,2,3)");
+		mappings.add(mapping5);
 		
 		ChangeFile file = new ChangeFile();
 		file.mappings = mappings;
 		
 		commitService.sanitiseMappings(file, "src/test/resources/source.txt", "src/test/resources/target.txt");
 		
+		String mapping1Source = "import x.y.z.One";
+		String mapping1Target = "import a.b.Six";
+		String mapping2Source = "@Two";
 		String mapping2Target = "@Four(***)";
 		String mapping3Source = "***.create(***)";
 		String mapping3Target = "***.add(***)";
 		String mapping4Source = "***.sum(***)";
 		String mapping4Target = "***.addTwo(***,***)";
+		String mapping5Source = mapping4Source;
+		String mapping5Target = "***.addThree(***,***,***)";
 		
-//		assertEquals(file.mappings.get(1).targets.keySet().toArray()[0], mapping2Target);
-//		System.out.println("mapping 2 target is" + file.mappings.get(1).targets.keySet().toArray()[0]);
+		
+		// assert keywords (rather than application context) have not been affected
+		
+		assertEquals(file.mappings.get(0).source, mapping1Source);
+		assertEquals(file.mappings.get(0).targets.keySet().toArray()[0], mapping1Target);
+		assertEquals(file.mappings.get(1).source, mapping2Source);
+		
+		// assert application context has been substituted
+		
+		assertEquals(file.mappings.get(1).targets.keySet().toArray()[0], mapping2Target);
+		System.out.println("mapping 2 target is " + file.mappings.get(1).targets.keySet().toArray()[0]);
 		assertEquals(file.mappings.get(2).source, mapping3Source);
-		System.out.println("mapping 3 source is" + file.mappings.get(2).source);
-//		assertEquals(file.mappings.get(2).targets.keySet().toArray()[0], mapping3Target);
-//		System.out.println("mapping 3 target is" + file.mappings.get(2).targets.keySet().toArray()[0]);
+		System.out.println("mapping 3 source is " + file.mappings.get(2).source);
+		assertEquals(file.mappings.get(2).targets.keySet().toArray()[0], mapping3Target);
+		System.out.println("mapping 3 target is " + file.mappings.get(2).targets.keySet().toArray()[0]);
 		assertEquals(file.mappings.get(3).source, mapping4Source);
-		System.out.println("mapping 4 source is" + file.mappings.get(3).source);
-//		assertEquals(file.mappings.get(3).targets.keySet().toArray()[0], mapping4Target);
-//		System.out.println("mapping 4 target is" + file.mappings.get(3).targets.keySet().toArray()[0]);
+		System.out.println("mapping 4 source is " + file.mappings.get(3).source);
+		assertEquals(file.mappings.get(3).targets.keySet().toArray()[0], mapping4Target);
+		System.out.println("mapping 4 target is " + file.mappings.get(3).targets.keySet().toArray()[0]);
 		
 	}
 
