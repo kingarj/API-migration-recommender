@@ -142,6 +142,10 @@ public class CommitServiceTest {
 		System.out.println("mapping 4 source is " + file.mappings.get(3).source);
 		assertEquals(file.mappings.get(3).targets.keySet().toArray()[0], mapping4Target);
 		System.out.println("mapping 4 target is " + file.mappings.get(3).targets.keySet().toArray()[0]);
+		assertEquals(file.mappings.get(4).source, mapping5Source);
+		System.out.println("mapping 5 source is " + file.mappings.get(4).source);
+		assertEquals(file.mappings.get(4).targets.keySet().toArray()[0], mapping5Target);
+		System.out.println("mapping 5 target is " + file.mappings.get(4).targets.keySet().toArray()[0]);
 		
 	}
 

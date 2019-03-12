@@ -6,10 +6,11 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -87,6 +88,7 @@ public class CommitService {
 				// generate the indices of characters to preserve in the source LOC
 				ArrayList<Integer> sourceIndices = generateProtectedIndices(sourceLib, m.source, syntaxTokens);
 				m.source = replaceContextualSyntax(sourceIndices, m.source);
+				
 				for (String target : m.targets.keySet()) {
 					
 					// generate the indices of characters to preserve in the target LOCs
@@ -119,11 +121,19 @@ public class CommitService {
 			}
 			// loop attributes and methods
 			for (String ams : s.getValue()) {
-				int j = loc.indexOf(ams);
-				if (j > -1) {
-					protectedIndices.add(j);
-					protectedIndices.add(j+ams.length());						
+				if (ams.isEmpty()) {
+					continue;
 				}
+				int j = loc.indexOf(ams);
+				int len = j + ams.length();
+				// ensure that this is the full method or attribute by checking surrounding syntax
+				if (j > -1 && loc.substring(j - 1,j).equals(".") && 
+						(loc.substring(len,len+1).equals("(") || 
+							loc.substring(len, len+ 1).equals(";") ||
+								len == loc.length())) {
+									protectedIndices.add(j);
+									protectedIndices.add(j+ams.length());
+				}			
 			}
 		}
 		
@@ -153,27 +163,36 @@ public class CommitService {
 
 
 	private String replaceContextualSyntax(ArrayList<Integer> protectIndices, String loc) {
+		/**
+		 * returns a String where the application context has been replaced 
+		 * by a sequence of three asterisks
+		 */
 		String newString = "";
 		String replaceChar = "***";
+		
+		// filter out the repeated integers from the index list using a set
+//		Set<Integer> uniqueIndices = new HashSet<>(protectIndices);
+//		protectIndices.clear();
+//		protectIndices.addAll(uniqueIndices);
 		Collections.sort(protectIndices);
 		
 		for (int i = 0; i < protectIndices.size(); i ++) {
+			Integer index = protectIndices.get(i);
 			if (i == protectIndices.size() - 1) {
-				if (protectIndices.get(i) < loc.length()) {
+				if (index < loc.length()) {
 					newString += replaceChar;							
 				}
 			}
-			else if (i == 0 && protectIndices.get(i) == 0) {
-				newString += loc.substring(protectIndices.get(i), protectIndices.get(i+1));
-			}
-			else if (i == 0 && protectIndices.get(i) != 0) {
-				newString += replaceChar;
-				newString += loc.substring(protectIndices.get(i), protectIndices.get(i+1));
+			else if (i == 0) {
+				if (index != 0) {
+					newString += replaceChar;					
+				}
+				newString += loc.substring(index, protectIndices.get(i+1));
 			}
 			else if (i % 2 == 0) {
-				newString += loc.substring(protectIndices.get(i), protectIndices.get(i+1));
+				newString += loc.substring(index, protectIndices.get(i+1));
 			}
-			else if (protectIndices.get(i) == protectIndices.get(i+1) || protectIndices.get(i) == protectIndices.get(i+1) + 1) {
+			else if (index == protectIndices.get(i+1) || index == protectIndices.get(i+1) + 1) {
 				continue;
 			}
 			else {
@@ -185,6 +204,11 @@ public class CommitService {
 
 
 	private HashMap<String, String[]> generateLibrary(String file) throws IOException {
+		/***
+		 * Create a HashMap representing a library from a source code where:
+		 * the class is on the LHS, separated from its attributes and methods by a colon (:)
+		 * the attributes and methods are comma-separated values on the RHS of a colon (:)
+		 */
 		HashMap<String, String[]> newLib = new HashMap<String, String[]>();
 
 		// populate newLib HashMap with classes and their methods and attributes
