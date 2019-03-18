@@ -8,10 +8,10 @@ import domain.Commit;
 import domain.Mapping;
 
 public class RecommendationEngine {
-	
+
 	CommitService commitService = new CommitService();
 
-	public HashMap<String, String> mergeMappings(Commit[] commits) {
+	public HashMap<String, String> mergeMappings(ArrayList<Commit> commits) {
 		HashMap<String, String> recommendations = new HashMap<String, String>();
 		ArrayList<Mapping> multiMap = new ArrayList<Mapping>();
 		for (Commit c : commits) {
@@ -21,12 +21,10 @@ public class RecommendationEngine {
 		for (Mapping m : multiMap) {
 			Map.Entry<String, Integer> maxEntry = null;
 
-			for (Map.Entry<String, Integer> entry : m.targets.entrySet())
-			{
-			    if (maxEntry == null || entry.getValue().compareTo(maxEntry.getValue()) > 0)
-			    {
-			        maxEntry = entry;
-			    }
+			for (Map.Entry<String, Integer> entry : m.targets.entrySet()) {
+				if (maxEntry == null || entry.getValue().compareTo(maxEntry.getValue()) > 0) {
+					maxEntry = entry;
+				}
 			}
 			recommendations.put(m.source, maxEntry.getKey());
 		}

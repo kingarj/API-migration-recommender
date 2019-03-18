@@ -1,0 +1,16 @@
+JsonAdapter.Factory:create
+JsonAdapter<T>:failOnUnknown,fromJson,fromJsonValue,indent,lenient,nonNull,nullSage,serializeNulls,toJson,toJsonValue
+JsonReader:beginArray,beginObject,endArray,endObject,failOnUnknown,getPath,hasNext,isLenient,nextBoolean,nextDouble,nextInt,nextLong,nextName,nextNull,nextString,of,peek,peekJson,readJsonValue,selectName,selectString,setFailOnUnknown,setLenient,skipName,skipValue
+JsonReader.Options:of
+JsonWriter:beginArray,beginFlatten,beginObject,endArray,endFlatten,endObject,getIndent,getPath,getSerializeNulls,isLenient,name,nullValue,of,setIndent,setLenient,setSerializeNulls,value
+Moshi:adapter,newBuilder,nextAdapter
+Moshi.Builder:add,build
+Types:arrayOf,collectionElementType,equals,getFieldJsonQualifierAnnotations,getRawType,newParameterizedType,newParamaterizedTypeWithOwner,nextAnnotations,subtypeOf,supertypeOf
+JsonReader.Token:BEGIN_ARRAY,BEGIN_OBJECT,BOOLEAN,END_ARRAY,END_DOCUMENT,END_OBJECT,NAME,NULL,NUMBER,STRING,valueof,values
+JsonDataException
+JsonEncodingException
+FromJson
+Json
+JsonClass
+JsonQualifier
+ToJson

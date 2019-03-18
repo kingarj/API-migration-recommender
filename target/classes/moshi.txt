@@ -1,1 +1,0 @@
-JsonAdapter.Factory,JsonAdapter<T>,JsonReader,JsonReader.Options,JsonWriter,Moshi,Moshi.Builder,Types,JsonReader.Token,JsonDataException,JsonEncodingException,FromJson,Json,JsonClass,JsonQualifier,ToJson
