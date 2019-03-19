@@ -1,23 +1,14 @@
 package services;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import domain.ChangeFile;
 import domain.Commit;
@@ -29,15 +20,8 @@ public class CommitService {
 
 	Logger logger = LoggerFactory.getLogger(CommitService.class);
 
-	public Commit createNewCommit(HttpResponse response, String source, String target)
+	public Commit createNewCommit(CommitResponse commitResponse, String source, String target)
 			throws UnsupportedOperationException, IOException {
-		// create CommitResponse from HttpResponse
-		HttpEntity entity = response.getEntity();
-		Gson gson = new GsonBuilder().create();
-		ContentType contentType = ContentType.getOrDefault(entity);
-		Charset charset = contentType.getCharset();
-		Reader reader = new InputStreamReader(entity.getContent(), charset);
-		CommitResponse commitResponse = gson.fromJson(reader, CommitResponse.class);
 
 		// attach the change-set to the new Commit
 		Commit commit = commitResponse.commit;
@@ -46,7 +30,9 @@ public class CommitService {
 		// generate the candidate mappings for each file
 		for (ChangeFile file : commit.files) {
 			setMappings(file);
-			sanitiseMappings(file, source, target);
+			if (file.mappings != null && !file.mappings.isEmpty()) {
+				sanitiseMappings(file, source, target);
+			}
 		}
 
 		return commit;
@@ -138,7 +124,7 @@ public class CommitService {
 				logger.debug("char before is {}", before);
 				logger.debug("char after is {}", after);
 				if ((before.equals(" ") || before.equals("(") || before.equals("\t") || i == 0)
-						&& (after.equals("(") || after.equals(".") || classlen == loc.length() || after.equals(" "))
+						&& (classlen == loc.length() || after.equals("(") || after.equals(".") || after.equals(" "))
 						|| loc.indexOf("@") > -1) {
 					protectedIndices.add(i);
 					protectedIndices.add(classlen);

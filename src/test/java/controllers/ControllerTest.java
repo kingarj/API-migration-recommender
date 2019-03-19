@@ -21,6 +21,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
+import com.google.common.cache.LoadingCache;
+
+import domain.CommitResponse;
 import util.UtilityMethods;
 
 public class ControllerTest {
@@ -30,6 +33,9 @@ public class ControllerTest {
 
 	@Mock
 	VersionControlGateway vcg;
+
+	@Mock
+	LoadingCache<String, CommitResponse> cache;
 
 	HttpResponse commitResponse;
 	HttpResponse searchCommitResponse;
@@ -56,15 +62,15 @@ public class ControllerTest {
 
 		// set up commit request and response
 		String url = "https://api.github.com/repos/kingarj/API-migration-recommender/git/commits/6e199009fee42f8665923181a2f39adddcb92d5a";
-		HttpGet commitRequest = utilityVCG.buildCommitRequestBody(url);
+		String sha = "6e199009fee42f8665923181a2f39adddcb92d5a";
 		String commitResponseStr = UtilityMethods.readFile("src/test/resources/examplecommitresponse.txt");
 		StringEntity commitEntity = new StringEntity(commitResponseStr,
 				ContentType.create("application/json", Consts.UTF_8));
 		commitResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
 		commitResponse.setEntity(commitEntity);
+		CommitResponse commit = utilityVCG.getResponseClass(commitResponse);
 
-		Mockito.when(vcg.buildCommitRequestBody(url)).thenReturn(commitRequest);
-		Mockito.when(vcg.executeHttpRequest(commitRequest)).thenReturn(commitResponse);
+		Mockito.when(vcg.getCommit(url, sha)).thenReturn(commit);
 	}
 
 	@Test

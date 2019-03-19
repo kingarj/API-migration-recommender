@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import domain.Commit;
+import domain.CommitResponse;
 import domain.SearchCommit;
 import domain.SearchCommitResponse;
 import services.CommitService;
@@ -71,21 +72,19 @@ public class Controller {
 		// loop the commits retrieved
 		for (SearchCommit searchCommit : searchCommitResponse.items) {
 
-			logger.debug("Building commit request with {} URL", searchCommit.url);
-			// build the request body for each commit to retrieve the patch
-			HttpGet commitRequest = vcg.buildCommitRequestBody(searchCommit.url);
-			logger.debug("commit request built");
-			HttpResponse commitResponse = vcg.executeHttpRequest(commitRequest);
-			logger.debug("Commit request executed with status code {}", commitResponse.getStatusLine());
+			// get commit patch from github
+			CommitResponse commitResponse = vcg.getCommit(searchCommit.url, searchCommit.sha);
 
 			// map to a new Commit object including generating Cartesian mappings from the
 			// patch
 			Commit commit = cs.createNewCommit(commitResponse, sourceFile, targetFile);
+			logger.debug("processed: {}", commit.message);
 
-			// release the connection from the request object
-			commitRequest.releaseConnection();
+			// release the connection from the request object if it exists
+			if (vcg.currentRequest != null) {
+				vcg.currentRequest.releaseConnection();
+			}
 
-			logger.debug("processing: {}", commit.message);
 			commits.add(commit);
 		}
 

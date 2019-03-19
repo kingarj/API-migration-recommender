@@ -15,13 +15,16 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.junit.Test;
 
+import controllers.VersionControlGateway;
 import domain.Commit;
+import domain.CommitResponse;
 import util.UtilityMethods;
 
 public class RecommendationEngineTest {
 
 	CommitService commitService = new CommitService();
 	RecommendationEngine recommendationEngine = new RecommendationEngine();
+	VersionControlGateway vcg = new VersionControlGateway();
 
 	@Test
 	public void canInstantiateRecommendationEngine() {
@@ -37,7 +40,8 @@ public class RecommendationEngineTest {
 		StringEntity entity1 = new StringEntity(responseStr1, ContentType.create("application/json", Consts.UTF_8));
 		HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
 		response1.setEntity(entity1);
-		Commit commit1 = commitService.createNewCommit(response1, "src/test/resources/source.txt",
+		CommitResponse cr1 = vcg.getResponseClass(response1);
+		Commit commit1 = commitService.createNewCommit(cr1, "src/test/resources/source.txt",
 				"src/test/resources/target.txt");
 
 		// create second commit
@@ -45,7 +49,8 @@ public class RecommendationEngineTest {
 		StringEntity entity2 = new StringEntity(responseStr2, ContentType.create("application/json", Consts.UTF_8));
 		HttpResponse response2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
 		response2.setEntity(entity2);
-		Commit commit2 = commitService.createNewCommit(response2, "src/test/resources/source.txt",
+		CommitResponse cr2 = vcg.getResponseClass(response2);
+		Commit commit2 = commitService.createNewCommit(cr2, "src/test/resources/source.txt",
 				"src/test/resources/target.txt");
 
 		ArrayList<Commit> commits = new ArrayList<Commit>() {

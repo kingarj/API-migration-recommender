@@ -15,14 +15,17 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.junit.Test;
 
+import controllers.VersionControlGateway;
 import domain.ChangeFile;
 import domain.Commit;
+import domain.CommitResponse;
 import domain.Mapping;
 import util.UtilityMethods;
 
 public class CommitServiceTest {
 
 	public CommitService commitService = new CommitService();
+	public VersionControlGateway vcg = new VersionControlGateway();
 
 	@Test
 	public void canInstantiateCommitService() {
@@ -36,9 +39,10 @@ public class CommitServiceTest {
 		StringEntity entity = new StringEntity(responseStr, ContentType.create("application/json", Consts.UTF_8));
 		HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
 		response.setEntity(entity);
+		CommitResponse cr = vcg.getResponseClass(response);
 		String message = "add service to map results of searching github commits to an object";
 		String url = "https://api.github.com/repos/kingarj/API-migration-recommender/git/commits/6e199009fee42f8665923181a2f39adddcb92d5a";
-		Commit commit = commitService.createNewCommit(response, "src/test/resources/source.txt",
+		Commit commit = commitService.createNewCommit(cr, "src/test/resources/source.txt",
 				"src/test/resources/target.txt");
 		assertNotNull(commit.files);
 		assertEquals(commit.files.length, 8);
@@ -72,7 +76,8 @@ public class CommitServiceTest {
 		StringEntity entity = new StringEntity(responseStr, ContentType.create("application/json", Consts.UTF_8));
 		HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
 		response.setEntity(entity);
-		Commit commit = commitService.createNewCommit(response, "src/test/resources/source.txt",
+		CommitResponse cr = vcg.getResponseClass(response);
+		Commit commit = commitService.createNewCommit(cr, "src/test/resources/source.txt",
 				"src/test/resources/target.txt");
 
 		ArrayList<Mapping> mappings = commitService.mergeFileMappingCandidates(commit);
