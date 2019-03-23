@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 
 import org.apache.http.Consts;
@@ -15,6 +16,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.junit.Test;
 
+import com.google.gson.Gson;
+
 import controllers.VersionControlGateway;
 import domain.ChangeFile;
 import domain.Commit;
@@ -25,7 +28,8 @@ import util.UtilityMethods;
 public class CommitServiceTest {
 
 	public CommitService commitService = new CommitService();
-	public VersionControlGateway vcg = new VersionControlGateway();
+	public VersionControlGateway vcg = new VersionControlGateway("test", "test");
+	public Gson gson = new Gson();
 
 	@Test
 	public void canInstantiateCommitService() {
@@ -39,7 +43,8 @@ public class CommitServiceTest {
 		StringEntity entity = new StringEntity(responseStr, ContentType.create("application/json", Consts.UTF_8));
 		HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
 		response.setEntity(entity);
-		CommitResponse cr = vcg.getResponseClass(response);
+		Reader reader = vcg.getResponseReader(response);
+		CommitResponse cr = gson.fromJson(reader, CommitResponse.class);
 		String message = "add service to map results of searching github commits to an object";
 		String url = "https://api.github.com/repos/kingarj/API-migration-recommender/git/commits/6e199009fee42f8665923181a2f39adddcb92d5a";
 		Commit commit = commitService.createNewCommit(cr, "src/test/resources/source.txt",
@@ -76,7 +81,8 @@ public class CommitServiceTest {
 		StringEntity entity = new StringEntity(responseStr, ContentType.create("application/json", Consts.UTF_8));
 		HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
 		response.setEntity(entity);
-		CommitResponse cr = vcg.getResponseClass(response);
+		Reader reader = vcg.getResponseReader(response);
+		CommitResponse cr = gson.fromJson(reader, CommitResponse.class);
 		Commit commit = commitService.createNewCommit(cr, "src/test/resources/source.txt",
 				"src/test/resources/target.txt");
 

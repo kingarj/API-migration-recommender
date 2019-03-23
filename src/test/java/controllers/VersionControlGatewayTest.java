@@ -29,19 +29,19 @@ public class VersionControlGatewayTest {
 	public void init() {
 		source = "test1";
 		target = "test2";
-		vcg = new VersionControlGateway();
+		vcg = new VersionControlGateway("test", "test");
 	}
 
 	@Test
 	public void canInstantiateVersionControlGateway() {
-		VersionControlGateway testGateway = new VersionControlGateway();
+		VersionControlGateway testGateway = new VersionControlGateway("test", "test");
 		assertNotNull(testGateway);
 	}
 
 	@Test
 	public void canBuildSearchCommitRequestBody() throws ClientProtocolException, URISyntaxException, IOException {
-		HttpGet request = vcg.buildSearchCommitRequestBody(this.source, this.target);
-		String uri = "https://api.github.com/search/commits?q=test1+test2";
+		HttpGet request = vcg.buildSearchCommitRequestBody("1", this.source, this.target);
+		String uri = "https://api.github.com/search/commits?q=test1+test2&page=1&per_page=100";
 		assertNotNull(request);
 		assertEquals(request.getURI().toString(), uri);
 	}

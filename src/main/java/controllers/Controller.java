@@ -5,9 +5,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpGet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,15 +20,16 @@ import util.UtilityMethods;
 
 public class Controller {
 
-	VersionControlGateway vcg = new VersionControlGateway();
+	VersionControlGateway vcg;
 	SearchCommitService scs = new SearchCommitService();
 	CommitService cs = new CommitService();
 	RecommendationEngine re = new RecommendationEngine();
 	private static Logger logger = LoggerFactory.getLogger(Controller.class);
 	private String root;
 
-	public Controller(String root) {
+	public Controller(String root, String username, String password) {
 		this.root = root;
+		this.vcg = new VersionControlGateway(username, password);
 	}
 
 	public HashMap<String, String> generateRecommendations(String source, String target)
@@ -43,6 +42,7 @@ public class Controller {
 		 */
 		String sourceFile = root + source + ".txt";
 		String targetFile = root + target + ".txt";
+		HashMap<String, String> recommendations = new HashMap<String, String>();
 
 		// if we have no library files for the given libraries, raise an error output
 		try {
@@ -54,41 +54,47 @@ public class Controller {
 			return null;
 		}
 
-		// build the request body to get search commits from the name of the source and
-		// target APIs
-		logger.debug("Building search commit request");
-		HttpGet request = vcg.buildSearchCommitRequestBody(source, target);
-		HttpResponse response = vcg.executeHttpRequest(request);
-		logger.debug("Search commit request executed with status code {}", response.getStatusLine());
-
 		// handle response and map to object
-		SearchCommitResponse searchCommitResponse = scs.createNewSearchCommitResponse(response);
-		request.releaseConnection();
-		logger.debug("Search commit response handled");
-		logger.info("Total commits found: {}", searchCommitResponse.total_count);
+		SearchCommitResponse searchCommitResponse = vcg.getSearchCommit(source, target);
+		if (searchCommitResponse.total_count > 0) {
+			ArrayList<SearchCommit> relevantCommits = scs.filterIrrelevantSearchCommits(searchCommitResponse.items);
 
-		ArrayList<Commit> commits = new ArrayList<Commit>();
-
-		// loop the commits retrieved
-		for (SearchCommit searchCommit : searchCommitResponse.items) {
-
-			// get commit patch from github
-			CommitResponse commitResponse = vcg.getCommit(searchCommit.url, searchCommit.sha);
-
-			// map to a new Commit object including generating Cartesian mappings from the
-			// patch
-			Commit commit = cs.createNewCommit(commitResponse, sourceFile, targetFile);
-			logger.debug("processed: {}", commit.message);
-
-			// release the connection from the request object if it exists
-			if (vcg.currentRequest != null) {
-				vcg.currentRequest.releaseConnection();
+			if (relevantCommits != null) {
+				searchCommitResponse.items = relevantCommits;
 			}
 
-			commits.add(commit);
-		}
+			logger.debug("Search commit response handled");
+			logger.info("Total commits found: {}", searchCommitResponse.total_count);
 
-		return re.mergeMappings(commits);
+			ArrayList<Commit> commits = new ArrayList<Commit>();
+
+			// loop the commits retrieved
+			for (SearchCommit searchCommit : searchCommitResponse.items) {
+
+				// get commit patch from github
+				CommitResponse commitResponse = vcg.getCommit(searchCommit.url, searchCommit.sha);
+
+				// commitResponse will be null if the Gateway encountered an Exception
+				if (commitResponse != null) {
+					// map to a new Commit object including generating Cartesian mappings from the
+					// patch
+					Commit commit = cs.createNewCommit(commitResponse, sourceFile, targetFile);
+					logger.debug("processed: {}", commit.message);
+
+					// release the connection from the request object if it exists
+					if (vcg.currentRequest != null) {
+						vcg.currentRequest.releaseConnection();
+					}
+
+					commits.add(commit);
+				} else {
+					continue;
+				}
+			}
+
+			recommendations = re.mergeMappings(commits);
+		}
+		return recommendations;
 	}
 
 }

@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotNull;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.time.LocalDate;
 
 import org.apache.http.Consts;
@@ -26,7 +27,7 @@ import util.UtilityMethods;
 
 public class CommitCacheInterfaceTest {
 
-	VersionControlGateway vcg = new VersionControlGateway();
+	VersionControlGateway vcg = new VersionControlGateway("test", "test");
 	String cacheLocation = "src/test/resources/cache/";
 	CommitCacheInterface cci = new CommitCacheInterface(cacheLocation);
 	Gson gson = new Gson();
@@ -43,7 +44,8 @@ public class CommitCacheInterfaceTest {
 				ContentType.create("application/json", Consts.UTF_8));
 		HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
 		response.setEntity(commitEntity);
-		commitResponse = vcg.getResponseClass(response);
+		Reader reader = vcg.getResponseReader(response);
+		commitResponse = gson.fromJson(reader, CommitResponse.class);
 
 	}
 

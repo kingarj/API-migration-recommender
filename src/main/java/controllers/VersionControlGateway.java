@@ -11,13 +11,17 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +29,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import domain.CommitResponse;
+import domain.SearchCommitResponse;
 
 public class VersionControlGateway {
 
@@ -32,16 +37,20 @@ public class VersionControlGateway {
 	HttpGet currentRequest;
 	private static Logger logger = LoggerFactory.getLogger(VersionControlGateway.class);
 	public CommitCacheInterface cci = new CommitCacheInterface("src/main/resources/cache/");
+	Gson gson = new GsonBuilder().create();
 
-	public VersionControlGateway() {
-		this.httpclient = HttpClients.createDefault();
+	public VersionControlGateway(String username, String password) {
+		CredentialsProvider provider = new BasicCredentialsProvider();
+		UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, password);
+		provider.setCredentials(AuthScope.ANY, credentials);
+
+		this.httpclient = HttpClientBuilder.create().setDefaultCredentialsProvider(provider).build();
 	}
 
-	public CommitResponse getResponseClass(HttpResponse response) {
+	public Reader getResponseReader(HttpResponse response) {
 
 		// create CommitResponse from HttpResponse
 		HttpEntity entity = response.getEntity();
-		Gson gson = new GsonBuilder().create();
 		ContentType contentType = ContentType.getOrDefault(entity);
 		Charset charset = contentType.getCharset();
 		Reader reader = null;
@@ -50,10 +59,10 @@ public class VersionControlGateway {
 		} catch (UnsupportedOperationException | IOException e) {
 			logger.debug(e.getMessage());
 		}
-		return gson.fromJson(reader, CommitResponse.class);
+		return reader;
 	}
 
-	public CommitResponse getCommit(String commitUrl, String sha) {
+	public CommitResponse getCommit(String commitUrl, String sha) throws HttpResponseException {
 		// cache stuff
 		try {
 			return cci.loadCommit(sha);
@@ -65,17 +74,60 @@ public class VersionControlGateway {
 				HttpGet commitRequest = buildCommitRequestBody(commitUrl);
 				logger.debug("commit request built");
 				HttpResponse response = executeHttpRequest(commitRequest);
-				CommitResponse commitResponse = getResponseClass(response);
+				Reader reader = getResponseReader(response);
+				CommitResponse commitResponse = gson.fromJson(reader, CommitResponse.class);
 
 				// save in the cache for later
 				cci.cacheCommit(sha, commitResponse);
 				return commitResponse;
 			} catch (URISyntaxException | IOException e2) {
 				logger.debug(e2.getMessage());
+				if (e2.getMessage().indexOf("403") > -1) {
+					throw new HttpResponseException(403, "API limit reached");
+				}
 				return null;
 			}
 
 		}
+	}
+
+	public SearchCommitResponse getSearchCommitByPage(String page, String source, String target)
+			throws HttpResponseException {
+		logger.debug("Building search commit request");
+		HttpGet request;
+		try {
+			request = buildSearchCommitRequestBody(page, source, target);
+			HttpResponse response = executeHttpRequest(request);
+			logger.debug("Search commit request executed with status code {}", response.getStatusLine());
+
+			Reader reader = getResponseReader(response);
+			SearchCommitResponse searchCommitResponse = gson.fromJson(reader, SearchCommitResponse.class);
+			request.releaseConnection();
+
+			logger.debug("Checking all commits have been retrieved from search commit");
+
+			return searchCommitResponse;
+		} catch (URISyntaxException | IOException e) {
+			logger.debug(e.getMessage());
+			if (e.getMessage().indexOf("403") > -1) {
+				throw new HttpResponseException(403, "API limit reached");
+			}
+			return null;
+		}
+	}
+
+	public SearchCommitResponse getSearchCommit(String source, String target) throws HttpResponseException {
+		int pageCounter = 1;
+		SearchCommitResponse searchCommitResponse = getSearchCommitByPage(Integer.toString(pageCounter), source,
+				target);
+		int remainingCommits = searchCommitResponse.total_count - 100;
+		while (remainingCommits > 0) {
+			pageCounter += 1;
+			SearchCommitResponse newResponse = getSearchCommitByPage(Integer.toString(pageCounter), source, target);
+			searchCommitResponse.items.addAll(newResponse.items);
+			remainingCommits -= 100;
+		}
+		return searchCommitResponse;
 	}
 
 	public HttpResponse executeHttpRequest(HttpGet request) throws ClientProtocolException, IOException {
@@ -88,10 +140,10 @@ public class VersionControlGateway {
 		return response;
 	}
 
-	public HttpGet buildSearchCommitRequestBody(String source, String target) throws URISyntaxException {
+	public HttpGet buildSearchCommitRequestBody(String page, String source, String target) throws URISyntaxException {
 		String query = source + " " + target;
 		URI uri = new URIBuilder().setScheme("https").setHost("api.github.com").setPath("/search/commits")
-				.setParameter("q", query).build();
+				.setParameter("q", query).setParameter("page", page).setParameter("per_page", "100").build();
 		HttpGet request = new HttpGet(uri);
 		request.setHeader(HttpHeaders.ACCEPT, "application/vnd.github.cloak-preview");
 		return request;

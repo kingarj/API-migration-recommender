@@ -139,12 +139,14 @@ public class CommitService {
 					continue;
 				}
 				int j = loc.indexOf(ams);
-				while (j >= 0) {
+				// if j is -1 then the string isn't present and if it is 0 then it is invalid
+				while (j > 0) {
 					int amslen = j + ams.length();
 					// ensure that this is the full method or attribute by checking surrounding
 					// syntax
-					if (loc.substring(j - 1, j).equals(".") && (loc.substring(amslen, amslen + 1).equals("(")
-							|| loc.substring(amslen, amslen + 1).equals(";") || amslen == loc.length())) {
+					if (loc.substring(j - 1, j).equals(".")
+							&& (amslen == loc.length() || loc.substring(amslen, amslen + 1).equals("(")
+									|| loc.substring(amslen, amslen + 1).equals(";"))) {
 						protectedIndices.add(j);
 						protectedIndices.add(j + ams.length());
 					}
@@ -284,7 +286,12 @@ public class CommitService {
 			ArrayList<String> tbd = new ArrayList<String>(); // tracks any as-yet unmapped deletions
 
 			for (String line : patch_arr) {
-				String diff = line.substring(0, 1);
+				String diff = "";
+				if (line.length() > 0) {
+					diff = line.substring(0, 1);
+				} else {
+					continue;
+				}
 				if (diff.equals("-")) {
 					// this is a deleted line
 					map = true;

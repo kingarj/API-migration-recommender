@@ -1,6 +1,8 @@
 package domain;
 
-public class SearchCommitResponse implements Response{
+import java.util.ArrayList;
+
+public class SearchCommitResponse implements Response {
 	public int total_count;
-	public SearchCommit[] items;
+	public ArrayList<SearchCommit> items;
 }

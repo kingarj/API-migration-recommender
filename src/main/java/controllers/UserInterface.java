@@ -10,7 +10,7 @@ import org.apache.http.client.ClientProtocolException;
 
 public class UserInterface {
 
-	public static Controller controller = new Controller("src/main/resources/libraries/");
+	public static Controller controller;
 
 	public UserInterface() {
 	}
@@ -18,6 +18,13 @@ public class UserInterface {
 	public static void main(String[] args) throws ClientProtocolException, URISyntaxException, IOException {
 
 		Scanner scanner = new Scanner(System.in);
+
+		System.out.println("Please enter your GitHub username");
+		String username = scanner.nextLine();
+		System.out.println("Please enter your GitHub password");
+		String password = scanner.nextLine();
+		controller = new Controller("src/main/resources/libraries/", username, password);
+
 		while (true) {
 			System.out.println("Enter x to exit at any time");
 			System.out.println("Please enter the name of the API you wish to migrate from");
