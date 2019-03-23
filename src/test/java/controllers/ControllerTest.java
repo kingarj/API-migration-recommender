@@ -86,6 +86,8 @@ public class ControllerTest {
 		HashMap<String, String> recommendations = controller.generateRecommendations(source, target);
 		assertNotNull(recommendations);
 		assert (recommendations.size() > 0);
+		assert (recommendations.get("***Gson *** = new GsonBuilder().create();")
+				.equals("***SearchCommitResponse *** = ***.***(***);"));
 	}
 
 }

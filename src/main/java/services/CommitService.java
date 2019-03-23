@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,12 +120,15 @@ public class CommitService {
 			int i = loc.indexOf(key);
 			while (i >= 0) {
 				int classlen = i + key.length();
-				String before = loc.substring(i - 1, i);
+				String before = i > 0 ? loc.substring(i - 1, i) : "";
+				String before2 = i > 1 ? loc.substring(i - 2, i) : "";
 				// if the class is at the end of the line then set the after string to be null
 				String after = classlen == loc.length() ? null : loc.substring(classlen, classlen + 1);
-				logger.debug("char before is {}", before);
-				logger.debug("char after is {}", after);
-				if ((before.equals(" ") || before.equals("(") || before.equals("\t") || i == 0)
+				logger.debug("char before {} is {}", key, before);
+				logger.debug("2 chars before {} is {}", key, before2);
+				logger.debug("char after {} is {}", key, after);
+				if ((i == 0 || before.equals(" ") || before.equals("(") || before.equals("\t") || before2.equals("\\t")
+						|| before2.equals("\t") || before2.equals("\t\t"))
 						&& (classlen == loc.length() || after.equals("(") || after.equals(".") || after.equals(" "))
 						|| loc.indexOf("@") > -1) {
 					protectedIndices.add(i);
@@ -159,6 +164,13 @@ public class CommitService {
 		// irrelevant
 		if (protectedIndices.isEmpty() && loc.indexOf("import") == -1 && loc.indexOf("@") == -1) {
 			return null;
+		}
+		// make sure at this point we don't have any duplicate keys
+		else {
+			Set<Integer> set = new LinkedHashSet<>();
+			set.addAll(protectedIndices);
+			protectedIndices.clear();
+			protectedIndices.addAll(set);
 		}
 
 		// identify tokens of Java to be ignored

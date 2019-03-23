@@ -25,13 +25,16 @@ public class RecommendationEngine {
 		}
 		for (Mapping m : multiMap) {
 			Map.Entry<String, Integer> maxEntry = null;
-
-			for (Map.Entry<String, Integer> entry : m.targets.entrySet()) {
-				if (maxEntry == null || entry.getValue().compareTo(maxEntry.getValue()) > 0) {
-					maxEntry = entry;
+			if (m.targets.isEmpty()) {
+				continue;
+			} else {
+				for (Map.Entry<String, Integer> entry : m.targets.entrySet()) {
+					if (maxEntry == null || entry.getValue().compareTo(maxEntry.getValue()) > 0) {
+						maxEntry = entry;
+					}
 				}
+				recommendations.put(m.source, maxEntry.getKey());
 			}
-			recommendations.put(m.source, maxEntry.getKey());
 		}
 		return recommendations;
 	}

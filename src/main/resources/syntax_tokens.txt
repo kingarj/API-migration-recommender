@@ -6,7 +6,11 @@ new
 )
 ;
 .
+ 
+=
 public
 private
 protected
 throws
+\t
+\\t

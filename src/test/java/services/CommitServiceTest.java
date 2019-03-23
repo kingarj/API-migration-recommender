@@ -77,18 +77,26 @@ public class CommitServiceTest {
 
 	@Test
 	public void canMergeFileMappingCandidates() throws IOException {
-		String responseStr = UtilityMethods.readFile("src/test/resources/examplecommitresponsetwocontrollerfiles.txt");
-		StringEntity entity = new StringEntity(responseStr, ContentType.create("application/json", Consts.UTF_8));
-		HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
-		response.setEntity(entity);
-		Reader reader = vcg.getResponseReader(response);
-		CommitResponse cr = gson.fromJson(reader, CommitResponse.class);
-		Commit commit = commitService.createNewCommit(cr, "src/test/resources/source.txt",
-				"src/test/resources/target.txt");
+		String originalLine1 = "\\t\\tGson gson = new GsonBuilder().create();";
+		String originalLine2 = "\\t\\tSearchCommitResponse searchCommitResponse = scs.createNewSearchCommitResponse(response);";
+		Mapping mapping = new Mapping(originalLine1, originalLine2);
+		ChangeFile file1 = new ChangeFile();
+		ChangeFile file2 = new ChangeFile();
+
+		file1.mappings = new ArrayList<Mapping>();
+		file2.mappings = new ArrayList<Mapping>();
+		file1.mappings.add(mapping);
+		file2.mappings.add(mapping);
+
+		Commit commit = new Commit();
+		commit.files = new ChangeFile[] { file1, file2 };
+
+		commitService.sanitiseMappings(file1, "src/test/resources/source.txt", "src/test/resources/target.txt");
+		commitService.sanitiseMappings(file2, "src/test/resources/source.txt", "src/test/resources/target.txt");
 
 		ArrayList<Mapping> mappings = commitService.mergeFileMappingCandidates(commit);
-		String line = "***new***GsonBuilder().create();";
-		String line2 = "***SearchCommitResponse***.***(***);";
+		String line = "\\t\\tGson *** = new GsonBuilder().create();";
+		String line2 = "\\t\\tSearchCommitResponse *** = ***.***(***);";
 		Integer i = 2;
 		assertNotNull(mappings);
 		assertEquals(mappings.size(), 1);
