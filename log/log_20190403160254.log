@@ -1,0 +1,45 @@
+995  DEBUG services.CommitService: sanitising mappings for src/main/java/controllers/Controller.java
+1004 DEBUG services.CommitService: the old source is: 	public String[] generateRecommendations(String source, String target)
+1005 DEBUG services.CommitService: the source indices are: empty
+1005 DEBUG services.CommitService: the old source is: 			throws URISyntaxException, ClientProtocolException, IOException {
+1005 DEBUG services.CommitService: the source indices are: empty
+1005 DEBUG services.CommitService: the old source is: 		HttpEntity entity = response.getEntity();
+1005 DEBUG services.CommitService: the source indices are: empty
+1006 DEBUG services.CommitService: the old source is: 		Gson gson = new GsonBuilder().create();
+1012 DEBUG services.CommitService: char before GsonBuilder is  
+1012 DEBUG services.CommitService: 2 chars before GsonBuilder is w 
+1012 DEBUG services.CommitService: char after GsonBuilder is (
+1012 DEBUG services.CommitService: we have found GsonBuilder in 		Gson gson = new GsonBuilder().create();
+1012 DEBUG services.CommitService: protected indices are: [18, 29]
+1013 DEBUG services.CommitService: char before Gson is 	
+1013 DEBUG services.CommitService: 2 chars before Gson is 		
+1013 DEBUG services.CommitService: char after Gson is  
+1013 DEBUG services.CommitService: we have found Gson in 		Gson gson = new GsonBuilder().create();
+1013 DEBUG services.CommitService: protected indices are: [18, 29, 32, 38, 32, 38, 2, 6]
+1013 DEBUG services.CommitService: char before Gson is  
+1013 DEBUG services.CommitService: 2 chars before Gson is w 
+1013 DEBUG services.CommitService: char after Gson is B
+1013 DEBUG services.CommitService: the source indices are: [18, 29, 32, 38, 2, 6, 14, 17, 29, 30, 38, 39, 30, 31, 39, 40, 40, 41, 31, 32, 6, 7, 11, 12, 13, 14, 17, 18, 12, 13]
+1014 DEBUG services.CommitService: the new source is ***Gson *** = new GsonBuilder().create();
+1014 DEBUG services.CommitService: the old target is 		SearchCommitResponse searchCommitResponse = scs.createNewSearchCommitResponse(response);
+1014 DEBUG services.CommitService: char before SearchCommitResponse is 	
+1014 DEBUG services.CommitService: 2 chars before SearchCommitResponse is 		
+1014 DEBUG services.CommitService: char after SearchCommitResponse is  
+1014 DEBUG services.CommitService: we have found SearchCommitResponse in 		SearchCommitResponse searchCommitResponse = scs.createNewSearchCommitResponse(response);
+1014 DEBUG services.CommitService: protected indices are: [2, 22]
+1014 DEBUG services.CommitService: char before SearchCommitResponse is w
+1014 DEBUG services.CommitService: 2 chars before SearchCommitResponse is ew
+1015 DEBUG services.CommitService: char after SearchCommitResponse is (
+1015 DEBUG services.CommitService: the target indices are [2, 22, 79, 80, 88, 89, 89, 90, 49, 50, 22, 23, 43, 44, 45, 46, 44, 45]
+1015 DEBUG services.CommitService: the new target is ***SearchCommitResponse *** = ***.***(***);
+1015 DEBUG services.CommitService: the old source is: 		ContentType contentType = ContentType.getOrDefault(entity);
+1016 DEBUG services.CommitService: the source indices are: empty
+1016 DEBUG services.CommitService: the old source is: 		Charset charset = contentType.getCharset();
+1016 DEBUG services.CommitService: the source indices are: empty
+1016 DEBUG services.CommitService: the old source is: 		Reader reader = new InputStreamReader(entity.getContent(), charset);
+1016 DEBUG services.CommitService: the source indices are: empty
+1016 DEBUG services.CommitService: the old source is: 		SearchCommitResponse searchCommitResponse = gson.fromJson(reader, SearchCommitResponse.class);
+1016 DEBUG services.CommitService: the source indices are: empty
+1016 DEBUG services.CommitService: sanitising mappings for src/main/java/domain/SearchCommitResponse.java
+1017 DEBUG services.CommitService: the old source is: 	SearchCommit[] items;
+1017 DEBUG services.CommitService: the source indices are: empty

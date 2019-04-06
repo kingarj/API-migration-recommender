@@ -12,6 +12,8 @@ import org.apache.http.client.ClientProtocolException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import util.UtilityMethods;
+
 public class UserInterface {
 
 	public static Controller controller;
@@ -46,10 +48,11 @@ public class UserInterface {
 			}
 
 			HashMap<String, String> recommendations = controller.generateRecommendations(source, target);
+			String filename = UtilityMethods.buildOutputFileName(source, target);
 
 			try {
 
-				PrintWriter writer = new PrintWriter(root + "output/" + System.currentTimeMillis() + ".txt");
+				PrintWriter writer = new PrintWriter(root + "output/" + filename + ".txt");
 
 				for (Entry<String, String> r : recommendations.entrySet()) {
 					writer.println("We recommend that you map: ");
