@@ -1,0 +1,4 @@
+Sequence:constrainAsNextInSequence
+States:become,startsAs
+Expectations:with,a,allowing,an,aNonNull,aNull,any,anything,atLeast,atMost,between,buildExpectations,currentBuilder,doAll,equal,exactly,ignoring,inSequence,inSequences,never,onConsecutiveCalls,one,oneOf,returnEnumeration,returnIterator,returnValue,same,then,throwException,when,will
+Mockery:addExpectation,assertIsSatisfied,checking,describeTo,mock,sequence,setDefaultResultForType,setExpectationErrorTranslator,setImposteriser,setNamingScheme,setThreadingPolicy,states

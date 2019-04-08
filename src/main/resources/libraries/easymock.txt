@@ -1,0 +1,17 @@
+IAnswer:answer
+IArgumentMatcher:appendTo,matches
+IExpectationSetters:andAnswer,andDelegateTo,andReturn,andStubAnswer,andStubDelegateTo,andStubReturn,andStubThrow,andThrow,andVoid,anyTimes,asStub,atLeastOnce,once,times
+IMockBuilder:addMockedMethod,addMockedMethods,createMock,createNiceMock,createStrictMock,mock,niceMock,strictMock,withArgs,withConstructor
+IMocksControl:checkIsUsedInOneThread,checkOrder,createMock,makeThreadSage,mock,replay,reset,resetToDefault,resetToNice,resetToStrict,verify,verifyRecording,verifyUnexpectedCalls
+Capture:getValue,getValues,hasCaptured,newInstance,reset,setValue,toString
+ConstructorArgs:getConstructor,getInitArgs
+EasyMock:DISABLE_CLASS_MOCCKING,ENABLE_THREAD_SAFETY_CHECK_BY_DEFAULT,NOT_THREAD_SAFE_BY_DEFAULT,and,anyBoolean,anyByte,anyChar,anyDouble,anyFloat,anyInt,anyLong,anyObject,anyShort,anyString,aryEq,captureBoolean,captureByte,captureChar,captureDouble,captureFloat,captureInt,captureLong,checkIsUsedInOneThread,checkORder,cmp,cmpEq,contains,createControl,createMock,createMockBuilder,createNiceControl,createNiceMock,createStrictControl,createStrickMock,endsWith,eq,expect,expectLastCall,find,geq,getCurrentArguments,getEasyMockProperty,gt,isA,isNull,leq,lt,makeThreadSafe,matches,mock,newCapture,niceMock,not,notNull,or,partialMockBuilder,replay,reportMatcher,reset,resetToDefault,resetToNice,resetToStrict,same,setEasyMockProperty,startsWith,strictMock,verify,verifyRecording,verifyUnexpectedCalls
+EasyMockListener:afterInvocation,beforeInvocation
+EasyMockRule:apply
+EasyMockRunner:withBefores
+EasyMockSupport:controls
+CaptureType:ALL,FIRST,LAST,NONE,valueOf,values
+LogicalOperator:EQUAL,GREATER,GREATER_OR_EQUAL,LESS_OR_EQUAL,LESS_THAN,getSymbol,matchResult,valueOf,values
+MockType:DEFAULT,NICE,STRICT,valueOf,values
+Mock
+TestSubject
