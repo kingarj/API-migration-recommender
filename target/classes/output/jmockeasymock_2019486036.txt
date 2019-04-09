@@ -1,0 +1,7 @@
+
+We recommend that you map: 
+    Mockery mock*** = new Mockery();
+to
+
+    *** mock*** = new ***();
+

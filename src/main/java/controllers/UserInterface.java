@@ -27,10 +27,23 @@ public class UserInterface {
 		Scanner scanner = new Scanner(System.in);
 		String root = "src/main/resources/";
 
-		System.out.println("Please enter your GitHub username");
-		String username = scanner.nextLine();
-		System.out.println("Please enter your GitHub password");
-		String password = scanner.nextLine();
+		String username;
+		String password;
+
+		try {
+			String creds = UtilityMethods.readFile("src/main/resources/creds.txt");
+			String[] credsArr = creds.split("\r\n");
+			username = credsArr[0];
+			password = credsArr[1];
+
+		} catch (IOException e) {
+			logger.debug(e.getMessage());
+			System.out.println("Please enter your GitHub username");
+			username = scanner.nextLine();
+			System.out.println("Please enter your GitHub password");
+			password = scanner.nextLine();
+		}
+
 		controller = new Controller(root + "libraries/", username, password);
 
 		while (true) {

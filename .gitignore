@@ -1,2 +1,5 @@
 src/main/resources/cache/
 target/classes/cache/
+target/classes/creds.txt
+src/main/resources/creds.txt
+*.log

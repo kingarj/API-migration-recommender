@@ -72,7 +72,8 @@ public class Controller {
 			for (SearchCommit searchCommit : searchCommitResponse.items) {
 
 				// get commit patch from github
-				CommitResponse commitResponse = vcg.getCommit(searchCommit.url, searchCommit.sha);
+				CommitResponse commitResponse = vcg.getCommit(searchCommit.url.replace("https://api.github.com", ""),
+						searchCommit.sha);
 
 				// commitResponse will be null if the Gateway encountered an Exception
 				if (commitResponse != null) {

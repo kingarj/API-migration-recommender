@@ -46,13 +46,13 @@ public class CommitServiceTest {
 		Reader reader = vcg.getResponseReader(response);
 		CommitResponse cr = gson.fromJson(reader, CommitResponse.class);
 		String message = "add service to map results of searching github commits to an object";
-		String url = "https://api.github.com/repos/kingarj/API-migration-recommender/git/commits/6e199009fee42f8665923181a2f39adddcb92d5a";
+		String url = "/repos/kingarj/API-migration-recommender/git/commits/6e199009fee42f8665923181a2f39adddcb92d5a";
 		Commit commit = commitService.createNewCommit(cr, "src/test/resources/source.txt",
 				"src/test/resources/target.txt");
 		assertNotNull(commit.files);
 		assertEquals(commit.files.length, 8);
 		assertEquals(message, commit.message);
-		assertEquals(url, commit.url);
+		assertEquals("https://api.github.com" + url, commit.url);
 	}
 
 	@Test
@@ -77,8 +77,8 @@ public class CommitServiceTest {
 
 	@Test
 	public void canMergeFileMappingCandidates() throws IOException {
-		String originalLine1 = "\\t\\tGson gson = new GsonBuilder().create();";
-		String originalLine2 = "\\t\\tSearchCommitResponse searchCommitResponse = scs.createNewSearchCommitResponse(response);";
+		String originalLine1 = "Gson gson = new GsonBuilder().create();";
+		String originalLine2 = "SearchCommitResponse searchCommitResponse = scs.createNewSearchCommitResponse(response);";
 		Mapping mapping = new Mapping(originalLine1, originalLine2);
 		ChangeFile file1 = new ChangeFile();
 		ChangeFile file2 = new ChangeFile();
@@ -95,8 +95,8 @@ public class CommitServiceTest {
 		commitService.sanitiseMappings(file2, "src/test/resources/source.txt", "src/test/resources/target.txt");
 
 		ArrayList<Mapping> mappings = commitService.mergeFileMappingCandidates(commit);
-		String line = "\\t\\tGson *** = new GsonBuilder().create();";
-		String line2 = "\\t\\tSearchCommitResponse *** = ***.***(***);";
+		String line = "Gson *** = new GsonBuilder().create();";
+		String line2 = "SearchCommitResponse *** = ***.***(***);";
 		Integer i = 2;
 		assertNotNull(mappings);
 		assertEquals(mappings.size(), 1);

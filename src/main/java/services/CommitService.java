@@ -21,6 +21,7 @@ import util.UtilityMethods;
 public class CommitService {
 
 	Logger logger = LoggerFactory.getLogger(CommitService.class);
+	String alphabet = "abcdefghijklmnopqrstuvwxyz";
 
 	public Commit createNewCommit(CommitResponse commitResponse, String source, String target)
 			throws UnsupportedOperationException, IOException {
@@ -117,26 +118,27 @@ public class CommitService {
 		for (Entry<String, String[]> s : library.entrySet()) {
 			// identify any Classes present in the line
 			String key = s.getKey();
-			int i = loc.indexOf(key);
-			while (i >= 0) {
-				int classlen = i + key.length();
-				String before = i > 0 ? loc.substring(i - 1, i) : "";
-				String before2 = i > 1 ? loc.substring(i - 2, i) : "";
-				// if the class is at the end of the line then set the after string to be null
-				String after = classlen == loc.length() ? null : loc.substring(classlen, classlen + 1);
-				logger.debug("char before {} is {}", key, before);
-				logger.debug("2 chars before {} is {}", key, before2);
-				logger.debug("char after {} is {}", key, after);
-				if ((i == 0 || before.equals(" ") || before.equals("(") || before.equals("\t") || before2.equals("\\t")
-						|| before2.equals("\t") || before2.equals("\t\t"))
-						&& (classlen == loc.length() || after.equals("(") || after.equals(".") || after.equals(" "))
-						|| loc.indexOf("@") > -1) {
-					protectedIndices.add(i);
-					protectedIndices.add(classlen);
-					logger.debug("we have found {} in {}", key, loc);
-					logger.debug("protected indices are: {}", protectedIndices.toString());
+			// root is an identifier of any library interface methods unattached to a class
+			if (key != "root") {
+
+				int i = loc.indexOf(key);
+				while (i >= 0) {
+					int classlen = i + key.length();
+					String before = i > 0 ? loc.substring(i - 1, i).toLowerCase() : "";
+					String after = classlen == loc.length() ? "" : loc.substring(classlen, classlen + 1).toLowerCase();
+					logger.debug("char before {} is {}", key, before);
+					logger.debug("char after {} is {}", key, after);
+
+					if ((before.equals("\t") || this.alphabet.indexOf(before) == -1 || before.equals(""))
+							&& (this.alphabet.indexOf(after) == -1 || after.equals(""))) {
+						protectedIndices.add(i);
+						protectedIndices.add(classlen);
+						logger.debug("we have found {} in {}", key, loc);
+						logger.debug("protected indices are: {}", protectedIndices.toString());
+					}
+					i = loc.indexOf(s.getKey(), i + 1);
 				}
-				i = loc.indexOf(s.getKey(), i + 1);
+
 			}
 			// loop attributes and methods
 			for (String ams : s.getValue()) {
@@ -149,9 +151,10 @@ public class CommitService {
 					int amslen = j + ams.length();
 					// ensure that this is the full method or attribute by checking surrounding
 					// syntax
-					if (loc.substring(j - 1, j).equals(".")
-							&& (amslen == loc.length() || loc.substring(amslen, amslen + 1).equals("(")
-									|| loc.substring(amslen, amslen + 1).equals(";"))) {
+					String before = j > 0 ? loc.substring(j - 1, j).toLowerCase() : "";
+					String after = amslen == loc.length() ? "" : loc.substring(amslen, amslen + 1).toLowerCase();
+					if ((alphabet.indexOf(before) == -1 || before.equals(""))
+							&& (alphabet.indexOf(after) == -1 || after.equals(""))) {
 						protectedIndices.add(j);
 						protectedIndices.add(j + ams.length());
 					}
@@ -251,7 +254,7 @@ public class CommitService {
 				if (segmentedClass.length != 2) {
 					throw new IOException("library file incorrectly configured");
 				} else {
-					className = segmentedClass[0];
+					className = segmentedClass[0].equals("") ? "root" : segmentedClass[0];
 					attrsMethods = segmentedClass[1];
 				}
 			} else {
@@ -298,6 +301,7 @@ public class CommitService {
 			ArrayList<String> tbd = new ArrayList<String>(); // tracks any as-yet unmapped deletions
 
 			for (String line : patch_arr) {
+				line.replace("\t", "").replace("\\t", "");
 				String diff = "";
 				if (line.length() > 0) {
 					diff = line.substring(0, 1);

@@ -1,0 +1,30 @@
+We recommend that you map: 
+    private *** *** = ***.create()
+to
+
+    private *** adapter = ***.adapter<***<***, ***>>(***.***).lenient()
+
+We recommend that you map: 
+    *** toJson()*** *** = ***.toJson(***)
+to
+
+    *** toJson()*** *** = adapter.toJson(***)
+
+We recommend that you map: 
+import com.google.gson.GsonBuilder
+to
+
+import com.squareup.moshi.Moshi
+
+We recommend that you map: 
+    *** *** = ***.fromJson<***<***, ***>>(***, ***.***)
+to
+
+    private *** adapter = ***.adapter<***<***, ***>>(***.***).lenient()
+
+We recommend that you map: 
+    private *** *** = GsonBuilder().serializeNulls().setLenient()
+to
+
+    private *** adapter = ***.adapter<***<***, ***>>(***.***).lenient()
+

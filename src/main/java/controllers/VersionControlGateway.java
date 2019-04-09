@@ -3,22 +3,25 @@ package controllers;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.AuthCache;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.ContentType;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -38,13 +41,24 @@ public class VersionControlGateway {
 	private static Logger logger = LoggerFactory.getLogger(VersionControlGateway.class);
 	public CommitCacheInterface cci = new CommitCacheInterface("src/main/resources/cache/");
 	Gson gson = new GsonBuilder().create();
+	private HttpClientContext context;
+	private HttpHost targetHost;
 
 	public VersionControlGateway(String username, String password) {
+		httpclient = HttpClientBuilder.create().build();
+		this.targetHost = new HttpHost("api.github.com", AuthScope.ANY_PORT, "https");
 		CredentialsProvider provider = new BasicCredentialsProvider();
 		UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, password);
-		provider.setCredentials(AuthScope.ANY, credentials);
+		AuthScope authScope = new AuthScope(targetHost.getHostName(), targetHost.getPort());
+		provider.setCredentials(authScope, credentials);
 
-		this.httpclient = HttpClientBuilder.create().setDefaultCredentialsProvider(provider).build();
+		AuthCache authCache = new BasicAuthCache();
+		BasicScheme basicAuth = new BasicScheme();
+		authCache.put(targetHost, basicAuth);
+
+		this.context = HttpClientContext.create();
+		this.context.setCredentialsProvider(provider);
+		this.context.setAuthCache(authCache);
 	}
 
 	public Reader getResponseReader(HttpResponse response) {
@@ -121,7 +135,8 @@ public class VersionControlGateway {
 		SearchCommitResponse searchCommitResponse = getSearchCommitByPage(Integer.toString(pageCounter), source,
 				target);
 		int remainingCommits = searchCommitResponse.total_count - 100;
-		while (remainingCommits > 0) {
+		// the GitHub API will only allow ten search requests
+		while (remainingCommits > 0 && pageCounter < 10) {
 			pageCounter += 1;
 			SearchCommitResponse newResponse = getSearchCommitByPage(Integer.toString(pageCounter), source, target);
 			searchCommitResponse.items.addAll(newResponse.items);
@@ -133,7 +148,7 @@ public class VersionControlGateway {
 	public HttpResponse executeHttpRequest(HttpGet request) throws ClientProtocolException, IOException {
 		logger.debug("executing HTTP request with {}", request.getRequestLine().toString());
 		currentRequest = request;
-		HttpResponse response = httpclient.execute(request);
+		HttpResponse response = httpclient.execute(this.targetHost, request, this.context);
 		logger.debug("Commit request sent and response received with status code {}", response.getStatusLine());
 
 		handleResponse(response);
@@ -141,9 +156,8 @@ public class VersionControlGateway {
 	}
 
 	public HttpGet buildSearchCommitRequestBody(String page, String source, String target) throws URISyntaxException {
-		String query = source + " " + target;
-		URI uri = new URIBuilder().setScheme("https").setHost("api.github.com").setPath("/search/commits")
-				.setParameter("q", query).setParameter("page", page).setParameter("per_page", "100").build();
+		String query = source + "+" + target;
+		String uri = "/search/commits?q=" + query + "&page=" + page + "&per_page=100";
 		HttpGet request = new HttpGet(uri);
 		request.setHeader(HttpHeaders.ACCEPT, "application/vnd.github.cloak-preview");
 		return request;
@@ -152,6 +166,12 @@ public class VersionControlGateway {
 	public HttpGet buildCommitRequestBody(String commitUrl) throws URISyntaxException {
 		HttpGet request = new HttpGet(commitUrl);
 		return request;
+	}
+
+	public HttpResponse getRateLimit() throws URISyntaxException, ClientProtocolException, IOException {
+		HttpGet request = new HttpGet("/rate_limit");
+		HttpResponse response = executeHttpRequest(request);
+		return response;
 	}
 
 	public void handleResponse(HttpResponse response) throws ClientProtocolException {

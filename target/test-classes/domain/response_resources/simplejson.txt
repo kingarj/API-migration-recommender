@@ -1,0 +1,3 @@
+:dump,dumps,load,loads
+JsonEncoder:default,encode,iterencode
+JsonDecoder:decode,raw_decode

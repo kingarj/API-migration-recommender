@@ -62,7 +62,7 @@ public class ControllerTest {
 		Mockito.when(vcg.getSearchCommit(source, target)).thenReturn(scr);
 
 		// set up commit request and response
-		String url = "https://api.github.com/repos/kingarj/API-migration-recommender/git/commits/6e199009fee42f8665923181a2f39adddcb92d5a";
+		String url = "/repos/kingarj/API-migration-recommender/git/commits/6e199009fee42f8665923181a2f39adddcb92d5a";
 		String sha = "6e199009fee42f8665923181a2f39adddcb92d5a";
 		String commitResponseStr = UtilityMethods.readFile("src/test/resources/examplecommitresponse.txt");
 		StringEntity commitEntity = new StringEntity(commitResponseStr,
