@@ -122,7 +122,7 @@ public class VersionControlGateway {
 
 			return searchCommitResponse;
 		} catch (URISyntaxException | IOException e) {
-			logger.debug(e.getMessage());
+			logger.debug(e.getCause() + ": " + e.getMessage());
 			if (e.getMessage().indexOf("403") > -1) {
 				throw new HttpResponseException(403, "API limit reached");
 			}
@@ -134,13 +134,18 @@ public class VersionControlGateway {
 		int pageCounter = 1;
 		SearchCommitResponse searchCommitResponse = getSearchCommitByPage(Integer.toString(pageCounter), source,
 				target);
-		int remainingCommits = searchCommitResponse.total_count - 100;
-		// the GitHub API will only allow ten search requests
-		while (remainingCommits > 0 && pageCounter < 10) {
-			pageCounter += 1;
-			SearchCommitResponse newResponse = getSearchCommitByPage(Integer.toString(pageCounter), source, target);
-			searchCommitResponse.items.addAll(newResponse.items);
-			remainingCommits -= 100;
+		if (searchCommitResponse != null) {
+			if (searchCommitResponse.total_count == 0) {
+				logger.info("There are no previous migrations known for " + source + " to " + target + ".");
+			}
+			int remainingCommits = searchCommitResponse.total_count - 100;
+			// the GitHub API will only allow ten search requests
+			while (remainingCommits > 0 && pageCounter < 10) {
+				pageCounter += 1;
+				SearchCommitResponse newResponse = getSearchCommitByPage(Integer.toString(pageCounter), source, target);
+				searchCommitResponse.items.addAll(newResponse.items);
+				remainingCommits -= 100;
+			}
 		}
 		return searchCommitResponse;
 	}

@@ -61,23 +61,30 @@ public class UserInterface {
 			}
 
 			HashMap<String, String> recommendations = controller.generateRecommendations(source, target);
-			String filename = UtilityMethods.buildOutputFileName(source, target);
+			if (recommendations.isEmpty()) {
 
-			try {
+				logger.info("We could not provide any recommendations for these libraries");
 
-				PrintWriter writer = new PrintWriter(root + "output/" + filename + ".txt");
+			} else {
+				String filename = UtilityMethods.buildOutputFileName(source, target);
 
-				for (Entry<String, String> r : recommendations.entrySet()) {
-					writer.println("We recommend that you map: ");
-					writer.println(r.getKey());
-					writer.println("to");
-					writer.println("\n" + r.getValue());
-					writer.println();
-					;
+				try {
+
+					PrintWriter writer = new PrintWriter(root + "output/" + filename + ".txt");
+
+					for (Entry<String, String> r : recommendations.entrySet()) {
+						writer.println("We recommend that you map: ");
+						writer.println(r.getKey());
+						writer.println("to");
+						writer.println("\n" + r.getValue());
+						writer.println();
+						;
+					}
+					writer.close();
+				} catch (FileNotFoundException e) {
+					logger.debug(e.getMessage());
 				}
-				writer.close();
-			} catch (FileNotFoundException e) {
-				logger.debug(e.getMessage());
+
 			}
 		}
 		scanner.close();

@@ -56,7 +56,7 @@ public class Controller {
 
 		// handle response and map to object
 		SearchCommitResponse searchCommitResponse = vcg.getSearchCommit(source, target);
-		if (searchCommitResponse.total_count > 0) {
+		if (searchCommitResponse != null && searchCommitResponse.total_count > 0) {
 			ArrayList<SearchCommit> relevantCommits = scs.filterIrrelevantSearchCommits(searchCommitResponse.items);
 
 			if (relevantCommits != null) {
@@ -94,6 +94,10 @@ public class Controller {
 			}
 
 			recommendations = re.mergeMappings(commits);
+		} else {
+			if (searchCommitResponse == null) {
+				logger.info("The gateway is not operating correctly. Please check your internet connection.");
+			}
 		}
 		return recommendations;
 	}
